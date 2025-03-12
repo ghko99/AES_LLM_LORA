@@ -21,6 +21,9 @@ class LlamaForSequenceRegression(torch.nn.Module):
             quantization_config=self.bnb_config,
             device_map="auto"
         )
+        
+        self.base_model.gradient_checkpointing_enable()
+
         self.lora_config = LoraConfig(
             r=16,
             lora_alpha=32,
