@@ -72,7 +72,7 @@ def llm_train():
             examples["text"],
             padding="max_length",
             truncation=True,
-            max_length=2048,
+            max_length=1024,
             return_tensors="pt"
         )
 
@@ -83,8 +83,8 @@ def llm_train():
     training_args = TrainingArguments(
         output_dir="./results",
         num_train_epochs=50,
-        per_device_train_batch_size=2,
-        per_device_eval_batch_size=2,
+        per_device_train_batch_size=4,
+        per_device_eval_batch_size=4,
         gradient_accumulation_steps=4,
         eval_accumulation_steps=4,
         learning_rate=1e-5,
@@ -95,7 +95,8 @@ def llm_train():
         save_strategy="epoch",
         save_safetensors=False,# 🔹 저장은 하되, 훈련 후 삭제 가능
         load_best_model_at_end=True,  # 🔹 Best Model 로드
-        save_total_limit=1  # 🔹 가장 좋은 모델 하나만 유지
+        save_total_limit=1,  # 🔹 가장 좋은 모델 하나만 유지
+        gradient_checkpointing=True
     )
 
 
