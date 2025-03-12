@@ -96,7 +96,6 @@ def llm_train():
         save_safetensors=False,# 🔹 저장은 하되, 훈련 후 삭제 가능
         load_best_model_at_end=True,  # 🔹 Best Model 로드
         save_total_limit=1,  # 🔹 가장 좋은 모델 하나만 유지
-        gradient_checkpointing=True
     )
 
 
