@@ -24,7 +24,6 @@ def data_collator(features):
     return {"input_ids": input_ids, "attention_mask": attention_mask, "labels": labels}
 
 
-
 def llm_train():
     wb_token = "8b738bb3f5650780015aa6c3d98a2c811b470916"
     wandb.login(key=wb_token)
@@ -42,7 +41,7 @@ def llm_train():
             examples["text"],
             padding="max_length",
             truncation=True,
-            max_length=1024,
+            max_length=512,
             return_tensors="pt"
         )
 
