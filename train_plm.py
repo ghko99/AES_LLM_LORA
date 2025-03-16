@@ -53,8 +53,8 @@ def llm_train():
         evaluation_strategy='epoch',
         save_strategy='epoch',
         learning_rate=1e-5,
-        per_device_train_batch_size=2,
-        per_device_eval_batch_size=2,
+        per_device_train_batch_size=4,
+        per_device_eval_batch_size=4,
         num_train_epochs=50,
         weight_decay=0.01,
         logging_dir='./logs',
@@ -74,7 +74,7 @@ def llm_train():
     )
 
     trainer.train()
-    trainer.save_model("./essay_scorer_model")
+    trainer.save_model("./kobert_results/final_model")
 
 
 if __name__ == "__main__":
