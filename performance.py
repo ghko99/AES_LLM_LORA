@@ -40,10 +40,9 @@ def save_performance_results(path):
     qwk.append(qwk_avg)
 
     df = pd.DataFrame({"rubric":rubric, "accuracy":accuracy, "QWK": qwk})
-    current_datetime = datetime.now()
-    formatted_datetime = current_datetime.strftime("%Y_%m_%d_%H_%M_%S")
-    df.to_csv('./performance_logs/{}.csv'.format(formatted_datetime),index=False)
+
+    df.to_csv('./performance_logs/{}.csv'.format(path),index=False)
 
 if __name__ == "__main__":
-    output_path = "2025_03_16_06_19_03_output"
+    output_path = "2025_03_16_06_19_03_llama_output"
     save_performance_results(output_path)

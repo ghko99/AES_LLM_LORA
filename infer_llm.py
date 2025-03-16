@@ -49,7 +49,7 @@ def llm_infer():
     result = Dataset.from_pandas(df)
     
     current_datetime = datetime.now()
-    formatted_datetime = current_datetime.strftime("%Y_%m_%d_%H_%M_%S_output")
+    formatted_datetime = current_datetime.strftime("%Y_%m_%d_%H_%M_%S_llama_output")
     
     result.save_to_disk(formatted_datetime)
 
