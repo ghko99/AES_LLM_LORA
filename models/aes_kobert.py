@@ -5,13 +5,11 @@ class KoBERTForSequenceRegression(nn.Module):
     def __init__(self, output_dim=11):
         super(KoBERTForSequenceRegression, self).__init__()
         self.bert = get_kobert_model()
-        self.dropout = nn.Dropout(0.1)
         self.classifier = nn.Linear(768, output_dim)
 
     def forward(self, input_ids, attention_mask, labels=None):
         outputs = self.bert(input_ids=input_ids, attention_mask=attention_mask)
         pooled_output = outputs.pooler_output  # 모델의 최종 출력
-        pooled_output = self.dropout(pooled_output)
         logits = self.classifier(pooled_output)  # 예측값
 
         loss = None
