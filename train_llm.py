@@ -40,7 +40,6 @@ def load_model(model_name):
     return model
 
 
-
 def data_collator(features):
     input_ids = torch.tensor([f["input_ids"] for f in features])
     attention_mask = torch.tensor([f["attention_mask"] for f in features])
@@ -83,8 +82,8 @@ def llm_train():
     training_args = TrainingArguments(
         output_dir="./results",
         num_train_epochs=50,
-        per_device_train_batch_size=4,
-        per_device_eval_batch_size=4,
+        per_device_train_batch_size=2,
+        per_device_eval_batch_size=2,
         gradient_accumulation_steps=4,
         eval_accumulation_steps=4,
         learning_rate=1e-5,
@@ -117,8 +116,6 @@ def llm_train():
 
     # Regressor 가중치 저장
     torch.save(model.regressor.state_dict(), "./model_weights/regressor_weights.pth")
-
-
 
 if __name__ == "__main__":
     llm_train()
