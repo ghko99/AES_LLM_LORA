@@ -20,7 +20,7 @@ def load_fine_tuned_kobert(model_path):
 def plm_infer():
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    model_path = "./kobert_results/final_model/model.safetensors"
+    model_path = "./kobert_results/essay_scorer_model/model.safetensors"
     tokenizer = get_tokenizer()
     model = load_fine_tuned_kobert(model_path=model_path).to(device=device)
 
@@ -53,7 +53,7 @@ def plm_infer():
     current_datetime = datetime.now()
     formatted_datetime = current_datetime.strftime("%Y_%m_%d_%H_%M_%S_kobert_output")
     
-    result.save_to_disk(formatted_datetime)
+    result.save_to_disk('./outputs/{}'.format(formatted_datetime))
 
 if __name__ == "__main__":
     plm_infer()

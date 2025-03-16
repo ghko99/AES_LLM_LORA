@@ -49,7 +49,7 @@ def llm_infer():
     current_datetime = datetime.now()
     formatted_datetime = current_datetime.strftime("%Y_%m_%d_%H_%M_%S_llama_output")
     
-    result.save_to_disk(formatted_datetime)
+    result.save_to_disk('./outputs/{}'.format(formatted_datetime))
 
 if __name__ == "__main__":
     llm_infer()
