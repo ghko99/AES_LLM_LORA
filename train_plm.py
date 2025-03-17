@@ -25,7 +25,7 @@ def data_collator(features):
 
 
 def llm_train():
-    wb_token = "8b738bb3f5650780015aa6c3d98a2c811b470916"
+    wb_token = ""
     wandb.login(key=wb_token)
     current_datetime = datetime.now()
     formatted_datetime = current_datetime.strftime("%Y-%m-%d %H:%M:%S")

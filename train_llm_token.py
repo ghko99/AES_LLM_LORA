@@ -6,10 +6,8 @@ from transformers import (
     TrainingArguments,
     EarlyStoppingCallback)
 import torch
-from torch.nn.utils.rnn import pad_sequence
 from datasets import load_from_disk
-from peft import LoraConfig, get_peft_model
-from train_llm import SaveBestPeftModelCallback
+from peft import LoraConfig,  get_peft_model, prepare_model_for_kbit_training
 import wandb
 from datetime import datetime
 
@@ -27,10 +25,11 @@ def load_llama_for_generation_model():
         device_map="auto"
     )
     tokenizer = AutoTokenizer.from_pretrained(model_id)
+    tokenizer.pad_token = tokenizer.eos_token
     return model, tokenizer
 
 def load_dataset_for_generation():
-    dataset = load_from_disk("aes_dataset_with_label")
+    dataset = load_from_disk("./dataset/aes_dataset_with_label")
     return dataset 
 
 
@@ -46,11 +45,12 @@ def DataCollator(examples):
     }
 
 def llm_token_train():
-    wb_token = "8b738bb3f5650780015aa6c3d98a2c811b470916"
+    
+    wb_token = ""
     
     wandb.login(key=wb_token)
     current_datetime = datetime.now()
-    formatted_datetime = current_datetime.strftime("%Y-%m-%d %H:%M:%S")
+    formatted_datetime = current_datetime.strftime("%Y-%m-%d_%H:%M:%S")
     wandb.init(project="automated_essay_scoring", name = formatted_datetime, reinit=True)
 
     model, tokenizer = load_llama_for_generation_model()
@@ -61,7 +61,7 @@ def llm_token_train():
         input_ids = []
         attention_masks = []
         labels = []
-
+        max_length = 2048
         for instruction,response in zip(examples['instruction'],examples['output']):
             message = [
             {'role': 'user', 'content': [
@@ -70,10 +70,10 @@ def llm_token_train():
             ]
             inputs = tokenizer.apply_chat_template(message, tokenize=True, add_generation_prompt=True)
             label = tokenizer(response+'<|eot_id|>',add_special_tokens=False)['input_ids']
-            input_id = inputs+label+([tokenizer.pad_token_id]*4096)
-            input_id = input_id[:4096]
-            label_id = [-100]*len(inputs) + label + ([tokenizer.pad_token_id]*4096)
-            label_id = label_id[:4096]
+            input_id = inputs+label+([tokenizer.pad_token_id]*max_length)
+            input_id = input_id[:max_length]
+            label_id = [-100]*len(inputs) + label + ([tokenizer.pad_token_id]*max_length)
+            label_id = label_id[:max_length]
             attention_mask = [1 if token != tokenizer.pad_token_id else 0 for token in input_id]
 
             input_ids.append(input_id)
@@ -102,11 +102,7 @@ def llm_token_train():
         batched=True,
         remove_columns=['instruction','output','scores']
     )
-    print(train_dataset)
-    print(train_dataset[0]["input_ids"][:10])
-    tokenizer.decode(train_dataset[0]["input_ids"][:100])
-
-
+    
     training_args = TrainingArguments(
         output_dir="./results",
         num_train_epochs=50,
@@ -129,34 +125,34 @@ def llm_token_train():
         torch_compile=True,
     )
     
-    target_modules = []
-    for n,p in model.named_parameters():
-        if 'language_model' in n and 'cross_attn' not in n and 'embed_tokens' not in n and 'lm_head' not in n and 'norm' not in n:
-            target_modules.append(n.replace('.weight',''))
-        # else:
-        #     p.require_grad=False
-
-    # Lora Tuning
     peft_config = LoraConfig(
-        task_type="CAUSAL_LM",
-        r=4,  #<-- 요거 줄이면 GPU메모리 절약됩니다.
-        lora_alpha=8, #<-- 요거 줄이면 GPU메모리 절약됩니다.
-        target_modules=target_modules
+            r=16,
+            lora_alpha=32,
+            target_modules=["q_proj", "o_proj"],
+            lora_dropout=0.1,
+            bias="none",
+            task_type="CAUSAL_LM"
     )
+
+    model.gradient_checkpointing_enable()
+
+    # 모델의 파라미터가 k-비트 양자화에 적합하도록 조정 준비
+    model = prepare_model_for_kbit_training(model)
 
     lora_model = get_peft_model(model,peft_config)
+    
+    print(lora_model.print_trainable_parameters())
 
     trainer = Trainer(
-        model=lora_model,
-        args=training_args,
-        train_dataset=train_dataset["train"],
-        eval_dataset=valid_dataset["valid"],
-        data_collator=DataCollator,
-        callbacks=[SaveBestPeftModelCallback(model), EarlyStoppingCallback(early_stopping_patience=5, 
-                                                                           early_stopping_threshold=0.0)]
-    )
+                model=lora_model,
+                args=training_args,
+                train_dataset=train_dataset,
+                eval_dataset=valid_dataset,
+                data_collator=DataCollator,
+                callbacks=[EarlyStoppingCallback(early_stopping_patience=5, early_stopping_threshold=0.0)])
+    
     trainer.train()
-    lora_model.save_pretrained("./model_for_gen_weights/lora_weights")
+    lora_model.save_pretrained("./weights/{}".format(formatted_datetime))
 
 if __name__ == "__main__":
     llm_token_train()
