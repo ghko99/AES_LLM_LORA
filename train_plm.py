@@ -1,10 +1,6 @@
 import torch
 from transformers import Trainer, TrainingArguments, EarlyStoppingCallback
 from kobert_transformers import get_tokenizer
-import pandas as pd
-from torch.utils.data import Dataset
-import torch.nn as nn
-import logging
 from models.aes_kobert import KoBERTForSequenceRegression
 import wandb
 from datetime import datetime

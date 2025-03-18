@@ -4,7 +4,6 @@ from safetensors.torch import load_file
 from datasets import load_from_disk
 from tqdm import tqdm
 from models.aes_kobert import KoBERTForSequenceRegression
-import numpy as np
 from datasets import Dataset
 import pandas as pd
 from datetime import datetime

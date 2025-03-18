@@ -1,19 +1,10 @@
 import torch
 from torch.utils.data import DataLoader
 from datasets import load_from_disk, Dataset
-import numpy as np
 from train_gru import splitted_essays, get_embedded_essay, EssayDataset
 from models.aes_gru import GRUScoreModule
-from sklearn.metrics import cohen_kappa_score
 import pandas as pd
 from datetime import datetime
-
-def compute_metrics(y_sent_pred, y_test):
-    accuracy_scores = np.mean(y_sent_pred == y_test, axis=0)
-    kappa_scores = [cohen_kappa_score(y_sent_pred[:,i], y_test[:,i], weights='quadratic') for i in range(y_sent_pred.shape[1])]
-
-    return accuracy_scores, np.array(kappa_scores)
-
 
 def infer_gru(
     model_path='./gru_model/best_model.pth',
